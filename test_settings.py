@@ -1,8 +1,13 @@
 import os
+import random
+import string
+
+SECRET_KEY = ''.join(random.sample(string.printable, 20))
 
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'restmore',
 ]
 
 DATABASES = {
