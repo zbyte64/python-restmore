@@ -1,4 +1,5 @@
 from django.utils.datastructures import MultiValueDict
+from django.test import TestCase
 
 from restmore.forms import DjangoFormMixin
 from collections import namedtuple
@@ -6,8 +7,8 @@ from collections import namedtuple
 
 MockedRequest = namedtuple('Request', 'FILES')
 
-#describe, it in python?
-class FormTestCase():
+
+class FormTestCase(TestCase):
     def test_get_form_class(self):
         target = DjangoFormMixin()
         target.form_class = 'return this'

@@ -31,10 +31,7 @@ def runtests():
 
     from django.conf import settings
     from django.test.utils import get_runner
-    from south.management.commands import patch_for_test_db_setup
-
-    patch_for_test_db_setup()
-
+    
     options = {
         'verbosity': 1,
         'interactive': False,

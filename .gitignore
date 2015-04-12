@@ -1,3 +1,8 @@
 *.py[cdo]
 *~
+/bin
+/include
+/lib
+/local
+/*.egg*
 
