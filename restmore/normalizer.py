@@ -4,7 +4,6 @@ from django.core.files import File
 from django.utils.encoding import force_text
 from django.utils.functional import Promise
 from django.core.paginator import Page
-
 from restless.preparers import Preparer
 
 
@@ -62,8 +61,9 @@ class NormalizedPreparer(Preparer):
     Resource mixin that normalizes your data against a "globally" defined normalizer
     '''
     def get_normalizer(self, identity, authorization):
-        #TODO settable with django setting: `RESTMORE_NORMALIZER = "python.path"`
-        return Normalizer(identity, authorization)
+        from .settings import NORMALIZER
+        #settable with django setting: `RESTMORE_NORMALIZER = "python.path"`
+        return NORMALIZER(identity, authorization)
 
     def prepare(self, data, identity=None, authorization=None):
         #TODO how will identity & authorization get passed in from view?

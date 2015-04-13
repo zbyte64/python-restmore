@@ -42,8 +42,14 @@ class PresentorResourceMixin(object):
         return self.build_response(self.prepare(data), status=status)
 
     def get_presentor(self):
-        #TODO settable with django setting: `RESTMORE_PRESENTORS = {"contenttype": "python.path"}`
-        return Presentor()
+        #settable with django setting: `RESTMORE_PRESENTORS = {"contenttype": "python.path"}`
+        from .settings import PRESENTORS
+        #TODO proper meta keys?
+        #TODO allow mixed presentors (different serialization types)
+        ct = self.request.META.get('ContentType') or self.request.META.get('Accepts') or 'application/json'
+        #if ct not in PRESENTORS:
+           #pass #TODO what error do we throw?
+        return PRESENTORS[ct]()
 
     def build_response(self, data, status=200):
         resp = HttpResponse(data, content_type=self.presentor.get_response_type())
