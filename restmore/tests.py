@@ -1,9 +1,12 @@
 from collections import namedtuple
 from django.utils.datastructures import MultiValueDict
 from django.test import TestCase
+from django.contrib.auth.models import User
 
 from restmore.forms import DjangoFormMixin
 from restmore.normalizer import normalize_data, Normalizer, NormalizedResourceMixin, defaultTransmuters
+from restmore.permissions import Authorization, DjangoModelAuthorization, AuthorizationMixin, ModelAuthorizationMixin
+from restmore.crud import DjangoModelResource
 
 
 MockedRequest = namedtuple('Request', 'FILES')
@@ -72,3 +75,39 @@ class NormalizerTestCase(TestCase):
         mixin.authorization = None
         result = mixin.prepare('hello world')
         self.assertEqual(result, 'hello world')
+
+
+class PermissionsTestCase(TestCase):
+    def test_authorization_process_queryset(self):
+        authorization = Authorization(None, None)
+        result = authorization.process_queryset(['foo'])
+        self.assertEqual(result, ['foo'])
+
+    def test_authorization_is_authorized(self):
+        authorization = Authorization(None, None)
+        result = authorization.is_authorized()
+        self.assertEqual(result, True)
+
+    def test_authorization_mixin_make_authorization(self):
+        mixin = AuthorizationMixin()
+        auth = mixin.make_authorization('identity', 'list')
+        self.assertTrue(isinstance(auth, Authorization))
+
+    def test_authorization_mixin_get_identity_returns_user(self):
+        mixin = AuthorizationMixin()
+        mixin.request = namedtuple('UserRequest', 'user')('John Smith')
+        user = mixin.get_identity()
+        self.assertEqual(user, 'John Smith')
+
+    def test_authorization_mixin_is_authenticated(self):
+        mixin = AuthorizationMixin()
+        mixin.authorization = mixin.make_authorization('identity', 'list')
+        result = mixin.is_authenticated()
+        self.assertEqual(result, True)
+
+    def test_django_model_authorization_is_authorized(self):
+        identity = User.objects.create(is_superuser=True, username='foo', email='foo@domain.com')
+        authorization = DjangoModelAuthorization(identity, User, 'list')
+        result = authorization.is_authorized()
+        self.assertEqual(result, True)
+        #TODO this is far less then enough

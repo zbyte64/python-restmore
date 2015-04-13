@@ -71,7 +71,7 @@ class DjangoModelResource(ModelAuthorizationMixin, DjangoFormMixin, NormalizedRe
         form = self.make_form()
         if form.is_valid():
             obj = form.save()
-            return HttpResponseRedirect(self.url_for(obj)), status=303)
+            return HttpResponseRedirect(self.url_for(obj), status=303)
         else:
             return self.build_validation_error(form.errors)
 
@@ -84,7 +84,7 @@ class DjangoModelResource(ModelAuthorizationMixin, DjangoFormMixin, NormalizedRe
         form = self.make_form(obj=obj)
         if form.is_valid():
             obj = form.save()
-            return HttpResponseRedirect(self.url_for(obj)), status=303)
+            return HttpResponseRedirect(self.url_for(obj), status=303)
         else:
             return self.build_validation_error(form.errors)
 

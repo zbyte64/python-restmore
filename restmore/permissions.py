@@ -15,6 +15,23 @@ class Authorization(object):
         return True
 
 
+class AuthorizationMixin(object):
+    def make_authorization(self, identity, endpoint):
+        return Authorization(identity, endpoint)
+
+    def get_identity(self):
+        #TODO delegate
+        return self.request.user
+
+    def is_authenticated(self):
+        return self.authorization.is_authorized()
+
+    def handle(self, endpoint, *args, **kwargs):
+        self.identity = self.get_identity()
+        self.authorization = self.make_authorization(self.identity, endpoint)
+        return super(AuthorizationMixin, self).handle(endpoint, *args, **kwargs)
+
+
 class DjangoModelAuthorization(Authorization):
     '''
     Your basic django core permission based authorization
@@ -44,23 +61,6 @@ class DjangoModelAuthorization(Authorization):
         return self.identity.has_perm(perm_name)
 
 
-class AuthorizationMixin(object):
-    def make_authorization(self, identity, endpoint):
-        return Authorization(identity, endpoint)
-
-    def get_identity(self):
-        #TODO delegate
-        return self.request.user
-
-    def is_authenticated(self):
-        return self.authorization.is_authorized()
-
-    def handle(self, endpoint, *args, **kwargs):
-        self.identity = self.get_identity()
-        self.authorization = self.make_authorization(self.identity, endpoint)
-        return super(AuthorizationMixin, self).handle(endpoint, *args, **kwargs)
-
-
 class ModelAuthorizationMixin(object):
-    def make_authorization(self, endpoint):
-        return DjangoModelAuthorization(self.get_identity(), self.model, endpoint)
+    def make_authorization(self, identity, endpoint):
+        return DjangoModelAuthorization(identity, self.model, endpoint)
