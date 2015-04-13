@@ -29,4 +29,5 @@ class DjangoFormMixin(object):
         '''
         data = self.wrap_validation_error_response(validation_errors)
         payload = self.prepare(data)
-        return self.build_response(data, status=403) #bad request
+        #412 validation = client precondition; 400 = bad request
+        return self.build_response(data, status=400)

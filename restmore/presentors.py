@@ -31,7 +31,11 @@ class PresentorResourceMixin(object):
 
     def handle(self, endpoint, *args, **kwargs):
         #why the extra layer of indirection? so we can dynamically switch serializers and hypermedia
-        self.presentor = self.get_presentor() #TODO if invalid content type, return 403 (or something like it)
+        try:
+            self.presentor = self.get_presentor()
+        except KeyError:
+            #406 = Bad Accept, 415 = Bad Content Type
+            return HttpResponse('Invalid content type', status=406)
         self.serializer = self.presentor.get_serializer()
         return super(PresentorResourceMixin, self).handle(endpoint, *args, **kwargs)
 
@@ -47,8 +51,6 @@ class PresentorResourceMixin(object):
         #TODO proper meta keys?
         #TODO allow mixed presentors (different serialization types)
         ct = self.request.META.get('ContentType') or self.request.META.get('Accepts') or 'application/json'
-        #if ct not in PRESENTORS:
-           #pass #TODO what error do we throw?
         return PRESENTORS[ct]()
 
     def build_response(self, data, status=200):
