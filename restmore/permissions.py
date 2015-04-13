@@ -45,8 +45,8 @@ class DjangoModelAuthorization(Authorization):
 
 
 class AuthorizationMixin(object):
-    def make_authorization(self, endpoint):
-        return Authorization(self.get_identity(), endpoint)
+    def make_authorization(self, identity, endpoint):
+        return Authorization(identity, endpoint)
 
     def get_identity(self):
         #TODO delegate
@@ -56,7 +56,8 @@ class AuthorizationMixin(object):
         return self.authorization.is_authorized()
 
     def handle(self, endpoint, *args, **kwargs):
-        self.authorization = self.make_authorization(endpoint)
+        self.identity = self.get_identity()
+        self.authorization = self.make_authorization(self.identity, endpoint)
         return super(AuthorizationMixin, self).handle(endpoint, *args, **kwargs)
 
 

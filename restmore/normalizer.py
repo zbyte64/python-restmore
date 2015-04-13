@@ -25,18 +25,18 @@ def normalize_data(obj, notfound=lambda x: x, enc=defaultTransmuters):
         if encoder:
             while not callable(encoder):  # alias
                 encoder = enc[encoder]
-            return serialize_data(encoder(obj), notfound, enc)
-    if isinstance(obj, (basestring, int, long, float, decimal.Decimal)):
+            return normalize_data(encoder(obj), notfound, enc)
+    if isinstance(obj, (str, int, float, decimal.Decimal)):
         return obj
     elif isinstance(obj, list):
-        obj = [serialize_data(item, notfound, enc) for item in obj]
+        obj = [normalize_data(item, notfound, enc) for item in obj]
     elif isinstance(obj, dict):
-        obj = dict([(serialize_data(k, notfound, enc), serialize_data(v, notfound, enc))
+        obj = dict([(normalize_data(k, notfound, enc), normalize_data(v, notfound, enc))
             for k, v in obj.items()])
     elif isinstance(obj, set):
-        obj = set([serialize_data(item, notfound, enc) for item in obj])
+        obj = set([normalize_data(item, notfound, enc) for item in obj])
     elif hasattr(obj, '__iter__'):
-        obj = [serialize_data(item, notfound, enc) for item in obj]
+        obj = [normalize_data(item, notfound, enc) for item in obj]
     return notfound(obj)
 
 
@@ -59,10 +59,10 @@ class NormalizedResourceMixin(object):
     '''
     def get_normalizer(self):
         #TODO settable with django setting: `RESTMORE_NORMALIZER = "python.path"`
-        return Normalizer(self.get_identity(), self.authorization)
+        return Normalizer(self.identity, self.authorization)
 
     def prepare(self, data):
-        return this.get_normalizer().normalize(data)
+        return self.get_normalizer().normalize(data)
 
     def build_status_response(self, data, status=200):
         '''

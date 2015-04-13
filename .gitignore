@@ -1,5 +1,8 @@
 *.py[cdo]
 *~
+/.coverage
+/coverage.xml
+/pep8.txt
 /bin
 /include
 /lib

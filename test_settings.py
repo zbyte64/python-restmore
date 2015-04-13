@@ -18,6 +18,12 @@ DATABASES = {
     }
 }
 
+MIDDLEWARE_CLASSES = [
+     'django.contrib.sessions.middleware.SessionMiddleware',
+     'django.contrib.auth.middleware.AuthenticationMiddleware',
+     'django.contrib.messages.middleware.MessageMiddleware',
+]
+
 if os.environ.get('DATABASE_URL', False):
     import dj_database_url
     DATABASES = {'default': dj_database_url.config()}
