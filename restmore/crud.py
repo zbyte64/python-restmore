@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.forms.models import modelform_factory
 
 from restless.dj import DjangoResource
 
@@ -25,9 +26,8 @@ class DjangoModelResource(ModelAuthorizationMixin, DjangoFormMixin, NormalizedRe
     def get_form_class(self):
         if self.form_class:
             return self.form_class
-        #TODO call out to model form factory
         #TODO authorization may want to modify our form
-        return forms.ModelForm(self.model)
+        return modelform_factory(model=self.model)
 
     def url_for(self, obj):
         #TODO i'm sure we can come up with a smarter default
