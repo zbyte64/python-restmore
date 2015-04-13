@@ -7,10 +7,10 @@ from restless.dj import DjangoResource
 
 from .forms import DjangoFormMixin
 from .permissions import ModelAuthorizationMixin
-from .normalizer import NormalizedResourceMixin
+from .presentors import PresentorResourceMixin
 
 
-class DjangoModelResource(ModelAuthorizationMixin, DjangoFormMixin, NormalizedResourceMixin, DjangoResource):
+class DjangoModelResource(ModelAuthorizationMixin, DjangoFormMixin, PresentorResourceMixin, DjangoResource):
     '''
     A restless DjangoResource with ponies
     '''
@@ -40,15 +40,6 @@ class DjangoModelResource(ModelAuthorizationMixin, DjangoFormMixin, NormalizedRe
     def get_page(self):
         paginator = self.paginator()
         return paginator.page(self.request.GET.get('page'))
-
-    def wrap_list_response(self, page):
-        #TODO runthrough HATEOAS layer, just kidding... ?
-        return {
-            objects: page.object_list,
-            page: page.number,
-            pages: page.paginator.num_pages,
-            count: page.paginator.count,
-        }
 
     def list(self):
         try:

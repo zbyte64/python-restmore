@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 
 from restmore.forms import DjangoFormMixin
-from restmore.normalizer import normalize_data, Normalizer, NormalizedResourceMixin, defaultTransmuters
+from restmore.normalizer import normalize_data, Normalizer, NormalizedPreparer, defaultTransmuters
 from restmore.permissions import Authorization, DjangoModelAuthorization, AuthorizationMixin, ModelAuthorizationMixin
 from restmore.crud import DjangoModelResource
 
@@ -70,9 +70,7 @@ class NormalizerTestCase(TestCase):
         self.assertEqual(result, 'hello world')
 
     def test_normalized_resource_mixin_prepare(self):
-        mixin = NormalizedResourceMixin()
-        mixin.identity = None
-        mixin.authorization = None
+        mixin = NormalizedPreparer()
         result = mixin.prepare('hello world')
         self.assertEqual(result, 'hello world')
 

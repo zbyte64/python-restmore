@@ -3,6 +3,9 @@ import types
 from django.core.files import File
 from django.utils.encoding import force_text
 from django.utils.functional import Promise
+from django.core.paginator import Page
+
+from restless.preparers import Preparer
 
 
 #default transmuters
@@ -11,6 +14,7 @@ defaultTransmuters = {
     File: lambda obj: obj.url if hasattr(obj, 'url') else obj.name,
     Promise: force_text,
     types.GeneratorType: list,
+    Page: lambda obj: obj.object_list,
 }
 
 
@@ -53,19 +57,14 @@ class Normalizer(object):
         return normalize_data(obj, self.defaultTransmuter, self.transmuters)
 
 
-class NormalizedResourceMixin(object):
+class NormalizedPreparer(Preparer):
     '''
     Resource mixin that normalizes your data against a "globally" defined normalizer
     '''
-    def get_normalizer(self):
+    def get_normalizer(self, identity, authorization):
         #TODO settable with django setting: `RESTMORE_NORMALIZER = "python.path"`
-        return Normalizer(self.identity, self.authorization)
+        return Normalizer(identity, authorization)
 
-    def prepare(self, data):
-        return self.get_normalizer().normalize(data)
-
-    def build_status_response(self, data, status=200):
-        '''
-        Like build response but serializes the data for you
-        '''
-        return self.build_response(self.prepare(data), status=status)
+    def prepare(self, data, identity=None, authorization=None):
+        #TODO how will identity & authorization get passed in from view?
+        return self.get_normalizer(identity, authorization).normalize(data)
