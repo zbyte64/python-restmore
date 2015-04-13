@@ -3,19 +3,20 @@ Request (set serializer in `handle`) -> Resource -> Data
     -> Presentor (set response type in `build_response`, inject hypermedia in `serialize`)
     -> Normalizer (globalized preparer) -> Serializer
 '''
+from collections import namedtuple
 from django.http import HttpResponse
 from restless.serializers import JSONSerializer
 
 from .normalizer import NormalizedPreparer
 
 
+HybridSerializer = namedtuple('HybridSerializer', 'serialize deserialize')
+
+
 class Presentor(object):
     '''
     A simple JSON presentor
     '''
-    def get_serializer(self):
-        return JSONSerializer
-
     def inject(self, method, endpoint, data):
         '''
         Inject hypermedia data
@@ -35,8 +36,14 @@ class PresentorResourceMixin(object):
             self.presentor = self.get_presentor()
         except KeyError:
             #406 = Bad Accept, 415 = Bad Content Type
-            return HttpResponse('Invalid content type', status=406)
-        self.serializer = self.presentor.get_serializer()
+            return HttpResponse('Invalid Accepts', status=406)
+        try:
+            self.serializer = self.make_serializer()
+        except KeyError as error:
+            msg = error.args[0]
+            if msg == 'Invalid Request Type':
+                return HttpResponse(msg, status=415)
+            return HttpResponse(msg, status=406)
         return super(PresentorResourceMixin, self).handle(endpoint, *args, **kwargs)
 
     def build_status_response(self, data, status=200):
@@ -45,12 +52,28 @@ class PresentorResourceMixin(object):
         '''
         return self.build_response(self.prepare(data), status=status)
 
+    def make_serializer(self):
+        #settable with django setting: `RESTMORE_SERIALIZERS = {"contenttype": "python.path"}`
+        from .settings import SERIALIZERS
+        rt = self.request.META.get('ContentType') #request type
+        at = self.request.META.get('Accepts') #accept type
+        rt = rt or at or 'application/json'
+        at = at or rt
+        try:
+            rt_serializer = SERIALIZERS[rt]
+        except KeyError:
+            raise KeyError('Invalid Request Type')
+        try:
+            at_serializer = SERIALIZERS[at]
+        except KeyError:
+            raise KeyError('Invalid Accept Type')
+        return HybridSerializer(serialize=at_serializer(), deserialize=rt_serializer())
+
     def get_presentor(self):
         #settable with django setting: `RESTMORE_PRESENTORS = {"contenttype": "python.path"}`
         from .settings import PRESENTORS
         #TODO proper meta keys?
-        #TODO allow mixed presentors (different serialization types)
-        ct = self.request.META.get('ContentType') or self.request.META.get('Accepts') or 'application/json'
+        ct = self.request.META.get('Accepts') or self.request.META.get('ContentType') or 'application/json'
         return PRESENTORS[ct]()
 
     def build_response(self, data, status=200):
