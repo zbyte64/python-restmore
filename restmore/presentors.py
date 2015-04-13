@@ -31,7 +31,7 @@ class PresentorResourceMixin(object):
 
     def handle(self, endpoint, *args, **kwargs):
         #why the extra layer of indirection? so we can dynamically switch serializers and hypermedia
-        self.presentor = self.get_presentor()
+        self.presentor = self.get_presentor() #TODO if invalid content type, return 403 (or something like it)
         self.serializer = self.presentor.get_serializer()
         return super(PresentorResourceMixin, self).handle(endpoint, *args, **kwargs)
 

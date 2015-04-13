@@ -63,6 +63,7 @@ class NormalizedPreparer(Preparer):
     def get_normalizer(self, identity, authorization):
         from .settings import NORMALIZER
         #settable with django setting: `RESTMORE_NORMALIZER = "python.path"`
+        #TODO transmuters should be directly registerable or settingsable
         return NORMALIZER(identity, authorization)
 
     def prepare(self, data, identity=None, authorization=None):
