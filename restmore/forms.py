@@ -29,5 +29,5 @@ class DjangoFormMixin(object):
         '''
         data = self.wrap_validation_error_response(validation_errors)
         payload = self.prepare(data)
-        #412 validation = client precondition; 400 = bad request
+        #412 validation = client precondition; 400 = bad request; 422 = semantic error
         return self.build_response(data, status=400)
