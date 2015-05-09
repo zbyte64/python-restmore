@@ -10,7 +10,16 @@ from restless.serializers import JSONSerializer
 from .normalizer import NormalizedPreparer
 
 
-HybridSerializer = namedtuple('HybridSerializer', 'serialize deserialize')
+class HybridSerializer(object):
+    def __init__(self, serializer, deserializer):
+        self.serializer = serializer
+        self.deserializer = deserializer
+
+    def serialize(self, data):
+        return self.serializer.serialize(data)
+
+    def deserialize(self, data):
+        return self.deserializer.deserialize(data)
 
 
 class Presentor(object):
@@ -75,7 +84,7 @@ class PresentorResourceMixin(object):
             at_serializer = SERIALIZERS[at]
         except KeyError:
             raise KeyError('Invalid Accept Type')
-        return HybridSerializer(serialize=at_serializer(), deserialize=rt_serializer())
+        return HybridSerializer(serializer=at_serializer(), deserializer=rt_serializer())
 
     def get_presentor(self):
         '''

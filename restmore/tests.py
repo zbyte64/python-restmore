@@ -5,8 +5,11 @@ from django.contrib.auth.models import User
 
 from restmore.forms import DjangoFormMixin
 from restmore.normalizer import normalize_data, Normalizer, NormalizedPreparer, defaultTransmuters
+from restmore.presentors import HybridSerializer
 from restmore.permissions import Authorization, DjangoModelAuthorization, AuthorizationMixin, ModelAuthorizationMixin
 from restmore.crud import DjangoModelResource
+
+from restless.serializers import JSONSerializer
 
 
 MockedRequest = namedtuple('Request', 'FILES')
@@ -109,3 +112,10 @@ class PermissionsTestCase(TestCase):
         result = authorization.is_authorized()
         self.assertEqual(result, True)
         #TODO this is far less then enough
+
+
+class SerizlierTestCase(TestCase):
+    def test_serialize(self):
+        serializer = HybridSerializer(serializer=JSONSerializer(), deserializer=JSONSerializer())
+        data = serializer.serialize({"msg": "hello world"})
+        self.assertEqual(data, '{"msg": "hello world"}')
