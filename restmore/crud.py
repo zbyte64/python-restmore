@@ -42,29 +42,30 @@ class DjangoModelResource(ModelAuthorizationMixin, DjangoFormMixin, PresentorRes
 
     def get_page(self):
         paginator = self.get_paginator()
-        return paginator.page(self.request.GET.get('page'))
+        return paginator.page(self.request.GET.get('page', 1))
 
     def list(self):
         try:
             return self.get_page()
         except PageNotAnInteger as exception:
             #TODO proper status code?
-            return self.build_status_response({'message': str(exception)}, status=400)
+            return self.build_status_response(str(exception), status=400)
         except EmptyPage as exception:
             #TODO proper status code?
-            return self.build_status_response({'message': str(exception)}, status=410)
+            return self.build_status_response(str(exception), status=410)
 
     def detail(self, pk):
         try:
             return self.get_queryset().get(pk=pk)
         except self.model.DoesNotExist as exception:
-            return self.build_status_response({'message': str(exception)}, status=404)
+            return self.build_status_response(str(exception), status=404)
 
     @transaction.atomic
     def create(self):
         form = self.make_form()
         if form.is_valid():
             obj = form.save()
+            #TODO handle will run this through serializer!
             return HttpResponseRedirect(self.url_for(obj), status=303)
         else:
             return self.build_validation_error(form.errors)

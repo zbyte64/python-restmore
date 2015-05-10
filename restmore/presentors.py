@@ -39,6 +39,12 @@ class Presentor(object):
         return self.content_type
 
 
+class StatusException(Exception):
+    def __init__(self, message, status=400):
+        super(StatusException, self).__init__(message)
+        self.status = status
+
+
 class PresentorResourceMixin(object):
     preparer = NormalizedPreparer()
 
@@ -60,11 +66,11 @@ class PresentorResourceMixin(object):
 
         return super(PresentorResourceMixin, self).handle(endpoint, *args, **kwargs)
 
-    def build_status_response(self, data, status=200):
+    def build_status_response(self, data, status=400):
         '''
-        Like build response but serializes the data for you
+        An event occurred preventing the request from being completed
         '''
-        return self.build_response(self.prepare(data), status=status)
+        raise StatusException(data, status)
 
     def make_serializer(self):
         '''
@@ -97,6 +103,7 @@ class PresentorResourceMixin(object):
         return PRESENTORS[ct](ct)
 
     def build_response(self, data, status=200):
+        assert isinstance(data, (str, bytes)), "build_response only accepts serialized data"
         resp = HttpResponse(data, content_type=self.presentor.get_response_type())
         resp.status_code = status
         return resp

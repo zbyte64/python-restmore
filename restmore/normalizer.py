@@ -4,8 +4,24 @@ from django.core.files import File
 from django.utils.encoding import force_text
 from django.utils.functional import Promise
 from django.core.paginator import Page
+from django.core.serializers.python import Serializer
+from django.db.models import Model, QuerySet
 from restless.preparers import Preparer
 
+
+def normalize_queryset(queryset):
+    for entry in queryset:
+        yield entry
+
+
+def normalize_model_instance(instance):
+    serializer = Serializer()
+    flat_obj = serializer.serialize([instance], use_natural_keys=True)[0]
+    #print("normalized result:", flat_obj)
+    data = flat_obj.fields
+    if 'pk' in flat_obj:
+        data['pk'] = flat_obj['pk']
+    return data
 
 #default transmuters
 #TODO form.errors
@@ -14,13 +30,15 @@ defaultTransmuters = {
     Promise: force_text,
     types.GeneratorType: list,
     Page: lambda obj: obj.object_list,
+    QuerySet: normalize_queryset,
+    Model: normalize_model_instance,
 }
-
 
 def normalize_data(obj, notfound=lambda x: x, enc=defaultTransmuters):
     '''
     Recursively normalizes an object into python primitives
     '''
+    #print("normalize_dat:", obj)
     cls = obj if hasattr(obj, '__mro__') else type(obj)
     mro = cls.__mro__
     for subcls in mro:
@@ -31,6 +49,9 @@ def normalize_data(obj, notfound=lambda x: x, enc=defaultTransmuters):
             return normalize_data(encoder(obj), notfound, enc)
     if isinstance(obj, (str, int, float, decimal.Decimal)):
         return obj
+    elif isinstance(obj, bytes):
+        #TODO this is not proper
+        return obj.decode('utf8')
     elif isinstance(obj, list):
         obj = [normalize_data(item, notfound, enc) for item in obj]
     elif isinstance(obj, dict):
