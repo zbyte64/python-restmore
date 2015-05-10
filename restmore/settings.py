@@ -5,7 +5,9 @@ PRESENTORS = getattr(settings, 'RESTMORE_PRESENTORS',
     {'application/json': 'restmore.presentors.Presentor'})
 
 SERIALIZERS = getattr(settings, 'RESTMORE_SERIALIZERS',
-    {'application/json': 'restless.serializers.JSONSerializer'})
+    {'application/json': 'restless.serializers.JSONSerializer',
+     'multipart/form-data': 'restmore.serializers.MultipartFormSerializer',
+     'application/x-www-form-urlencoded': 'restmore.serializers.UrlSerializer',})
 
 NORMALIZER = getattr(settings, 'RESTMORE_NORMALIZER', 'restmore.normalizer.Normalizer')
 

@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.http import HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.forms.models import modelform_factory
 

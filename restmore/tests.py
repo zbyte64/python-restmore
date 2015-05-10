@@ -189,6 +189,15 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, 202, response.content)
         self.assertEqual(User.objects.all()[0].email, 'rockstar@domain.com')
 
+    def test_mixedmimetype_create(self):
+        #strangely test client doesn't serialize put but does serialize post!
+        response = self.client.post('/', {
+            "username": "foobarish",
+            "email": "rockstar@domain.com",
+        })
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(User.objects.all().count(), 2)
+
     def test_delete(self):
         response = self.client.delete('/{0}/'.format(self.userA.pk))
         self.assertEqual(response.status_code, 204, response.content)

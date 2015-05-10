@@ -3,6 +3,7 @@ Request (set serializer in `handle`) -> Resource -> Data
     -> Presentor (set response type in `build_response`, inject hypermedia in `serialize`)
     -> Normalizer (globalized preparer) -> Serializer
 '''
+import mimeparse
 from collections import namedtuple
 from django.http import HttpResponse
 from restless.serializers import JSONSerializer
@@ -52,11 +53,9 @@ class PresentorResourceMixin(object):
         #why the extra layer of indirection? so we can dynamically switch serializers and hypermedia
         try:
             self.serializer = self.make_serializer()
-        except KeyError as error:
-            msg = error.args[0]
-            if msg == 'Invalid Request Type':
-                return HttpResponse(msg, status=415)
-            return HttpResponse(msg, status=406)
+        except StatusException as error:
+            #TODO use handle_error instead
+            return HttpResponse(error.args[0], status=error.status)
 
         try:
             self.presentor = self.get_presentor()
@@ -79,19 +78,32 @@ class PresentorResourceMixin(object):
         '''
         #print("make_serializer:", self.request.META)
         from .settings import SERIALIZERS
+        media_types = SERIALIZERS.keys()
+
         rt = self.request.META.get('CONTENT_TYPE') #request type
-        at = self.request.META.get('ACCEPTS', 'application/json') #accept type
+        at = self.request.META.get('HTTP_ACCEPT', 'application/json') #accept type
+        #print("make_serializer:", rt, at)
         rt = rt or at
-        #TODO intelligent mimetype matching
+
+        #intelligent mimetype matching
+        rt = mimeparse.best_match(media_types, rt) or rt
+        at = mimeparse.best_match(media_types, at) or at
+
         try:
             rt_serializer = SERIALIZERS[rt]
         except KeyError:
-            raise KeyError('Invalid Request Type')
+            raise StatusException('Invalid Request Type: '+rt, 415)
         try:
             at_serializer = SERIALIZERS[at]
         except KeyError:
-            raise KeyError('Invalid Accept Type')
-        return HybridSerializer(serializer=at_serializer(), deserializer=rt_serializer())
+            raise StatusException('Invalid Accept Type: '+at, 406)
+
+        at_serializer = at_serializer()
+        rt_serializer = rt_serializer()
+        #hack so that serializers can read headers, like boundary
+        at_serializer.request = self.request
+        rt_serializer.request = self.request
+        return HybridSerializer(serializer=at_serializer, deserializer=rt_serializer)
 
     def get_presentor(self):
         '''
@@ -99,7 +111,8 @@ class PresentorResourceMixin(object):
         settable with django setting: `RESTMORE_PRESENTORS`
         '''
         from .settings import PRESENTORS
-        ct = self.request.META.get('ACCEPTS') or self.request.META.get('CONTENT_TYPE') or 'application/json'
+        ct = self.request.META.get('HTTP_ACCEPT') or self.request.META.get('CONTENT_TYPE') or 'application/json'
+        ct = mimeparse.best_match(PRESENTORS.keys(), ct) or 'application/json'
         return PRESENTORS[ct](ct)
 
     def build_response(self, data, status=200):
