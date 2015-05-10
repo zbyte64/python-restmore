@@ -11,6 +11,8 @@ from restmore.crud import DjangoModelResource
 
 from restless.serializers import JSONSerializer
 
+import json
+
 
 MockedRequest = namedtuple('Request', 'FILES')
 
@@ -119,3 +121,22 @@ class SerizlierTestCase(TestCase):
         serializer = HybridSerializer(serializer=JSONSerializer(), deserializer=JSONSerializer())
         data = serializer.serialize({"msg": "hello world"})
         self.assertEqual(data, '{"msg": "hello world"}')
+
+
+class UserModelResource(DjangoModelResource):
+    model = User
+
+    def is_debug(self):
+        return True
+
+
+class ViewTestCase(TestCase):
+    urls = UserModelResource.urls()
+
+
+    def test_list(self):
+        response = self.client.get('/')
+        message = json.loads(response.content.decode("utf-8"))
+        if 'error' in message:
+            self.fail(message['error']+ ": " + message['traceback'])
+        print(message)

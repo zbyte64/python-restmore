@@ -3,6 +3,8 @@ from django.http import HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.forms.models import modelform_factory
 
+from functools import lru_cache
+
 from restless.dj import DjangoResource
 
 from .forms import DjangoFormMixin
@@ -33,18 +35,19 @@ class DjangoModelResource(ModelAuthorizationMixin, DjangoFormMixin, PresentorRes
         #TODO i'm sure we can come up with a smarter default
         return obj.get_absolute_url()
 
+    #@lru_cache
     def get_paginator(self):
         queryset = self.get_queryset()
         return Paginator(queryset, self.request.GET.get('paginate_by', self.paginate_by))
 
     def get_page(self):
-        paginator = self.paginator()
+        paginator = self.get_paginator()
         return paginator.page(self.request.GET.get('page'))
 
     def list(self):
         try:
             return self.get_page()
-        except PageNotInteger as exception:
+        except PageNotAnInteger as exception:
             #TODO proper status code?
             return self.build_status_response({'message': str(exception)}, status=400)
         except EmptyPage as exception:

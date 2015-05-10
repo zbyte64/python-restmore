@@ -44,7 +44,7 @@ def normalize_data(obj, notfound=lambda x: x, enc=defaultTransmuters):
 
 
 class Normalizer(object):
-    defaultTransmuter = lambda x: x
+    defaultTransmuter = lambda self, x: x
     transmuters = defaultTransmuters
 
     def __init__(self, identity, authorization):

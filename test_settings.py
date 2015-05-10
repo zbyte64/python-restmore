@@ -56,3 +56,5 @@ else:
 
 
 NOSE_PLUGINS = ['tests.noseplugins.TestDiscoveryPlugin']
+
+ROOT_URLCONF = ''

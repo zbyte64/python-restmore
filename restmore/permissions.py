@@ -61,6 +61,6 @@ class DjangoModelAuthorization(Authorization):
         return self.identity.has_perm(perm_name)
 
 
-class ModelAuthorizationMixin(object):
+class ModelAuthorizationMixin(AuthorizationMixin):
     def make_authorization(self, identity, endpoint):
         return DjangoModelAuthorization(identity, self.model, endpoint)
