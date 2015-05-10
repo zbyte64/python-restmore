@@ -27,7 +27,9 @@ class DjangoFormMixin(object):
         '''
         Build a response from form validation errors
         '''
+        #CONSIDER: maybe the presentation should be part of a robust build_error, ie raise ValidationError
         data = self.wrap_validation_error_response(validation_errors)
         payload = self.prepare(data)
+        #TODO which of the following?
         #412 validation = client precondition; 400 = bad request; 422 = semantic error
-        return self.build_response(data, status=400)
+        return self.build_status_response(payload, status=400)

@@ -65,8 +65,8 @@ class DjangoModelResource(ModelAuthorizationMixin, DjangoFormMixin, PresentorRes
         form = self.make_form()
         if form.is_valid():
             obj = form.save()
-            #TODO handle will run this through serializer!
-            return HttpResponseRedirect(self.url_for(obj), status=303)
+            return obj
+            #return HttpResponseRedirect(self.url_for(obj), status=303)
         else:
             return self.build_validation_error(form.errors)
 
@@ -79,20 +79,22 @@ class DjangoModelResource(ModelAuthorizationMixin, DjangoFormMixin, PresentorRes
         form = self.make_form(obj=obj)
         if form.is_valid():
             obj = form.save()
-            return HttpResponseRedirect(self.url_for(obj), status=303)
+            return obj
+            #return HttpResponseRedirect(self.url_for(obj), status=303)
         else:
             return self.build_validation_error(form.errors)
 
     @transaction.atomic
     def delete(self, pk):
         self.get_queryset().get(pk=pk).delete()
-        return self.build_status_response(None, status=204)#or 410?
+        return None
+        #return self.build_status_response(None, status=204)#or 410?
 
     @transaction.atomic
     def delete_list(self):
         pks = self.request.GET.getlist('pk')
-        self.get_queryset().filter(pk__in=pks).delete()
-        return HttpResponseRedirect('./', status=303)
+        return self.get_queryset().filter(pk__in=pks).delete()
+        #return HttpResponseRedirect('./', status=303)
 
     #TODO
     '''
