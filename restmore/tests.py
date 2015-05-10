@@ -125,6 +125,7 @@ class SerizlierTestCase(TestCase):
 
 class UserModelResource(DjangoModelResource):
     model = User
+    fields = ['username', 'email']
 
     def is_debug(self):
         return True
@@ -142,7 +143,7 @@ class ViewTestCase(TestCase):
             email='foobar@domain.com', password='foobar')
         #print(self.userA.is_active, self.userA.pk, self.userA.check_password('foobar'), len(User.objects.all()))
         self.loggedIn = self.client.login(
-            username='foodizzle',
+            username='foo',
             password='foobar',
         )
         #TODO figure out why login isn't working!
@@ -171,3 +172,48 @@ class ViewTestCase(TestCase):
             self.fail(message['error']+ ": " + message['traceback'])
         #print(message)
         self.assertEqual(message['username'], 'foo')
+
+    def test_create(self):
+        response = self.client.post('/', json.dumps({
+            "username": "forshizzle",
+            "email": "rockstar@domain.com",
+        }), 'application/json')
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(User.objects.all().count(), 2)
+
+    def test_update(self):
+        response = self.client.put('/{0}/'.format(self.userA.pk), json.dumps({
+            "username": "foo",
+            "email": "rockstar@domain.com",
+        }), 'application/json')
+        self.assertEqual(response.status_code, 202, response.content)
+        self.assertEqual(User.objects.all()[0].email, 'rockstar@domain.com')
+
+    def test_delete(self):
+        response = self.client.delete('/{0}/'.format(self.userA.pk))
+        self.assertEqual(response.status_code, 204, response.content)
+        self.assertEqual(User.objects.all().count(), 0)
+
+    def test_list_bad_page_num(self):
+        response = self.client.get('/?page=foobar')
+        self.assertEqual(response.status_code, 400, response.content)
+
+    def test_list_outofbound_page_num(self):
+        response = self.client.get('/?page=10000')
+        self.assertEqual(response.status_code, 410, response.content)
+
+    def test_detail_404(self):
+        response = self.client.get('/15700/')
+        self.assertEqual(response.status_code, 404, response.content)
+
+    def test_bad_create(self):
+        response = self.client.post('/', json.dumps({
+            "email": "rockstar@domain.com",
+        }), 'application/json')
+        self.assertEqual(response.status_code, 400, response.content)
+
+    def test_bad_update(self):
+        response = self.client.put('/{0}/'.format(self.userA.pk), json.dumps({
+            "email": "rockstar@domain.com",
+        }), 'application/json')
+        self.assertEqual(response.status_code, 400, response.content)

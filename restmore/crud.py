@@ -19,7 +19,10 @@ class DjangoModelResource(ModelAuthorizationMixin, DjangoFormMixin, PresentorRes
     model = None
     paginate_by = 50
     #TODO filter_by
-    #TODO fields, exclude_fields
+    #these modify autoform
+    fields = None
+    exclude_fields = None
+    #TODO fields, exclude_fields to shape preparer
 
     def get_queryset(self):
         queryset = self.model.objects.all()
@@ -29,7 +32,7 @@ class DjangoModelResource(ModelAuthorizationMixin, DjangoFormMixin, PresentorRes
         if self.form_class:
             return self.form_class
         #TODO authorization may want to modify our form
-        return modelform_factory(model=self.model)
+        return modelform_factory(model=self.model, fields=self.fields, exclude=self.exclude_fields)
 
     def url_for(self, obj):
         #TODO i'm sure we can come up with a smarter default
@@ -76,7 +79,7 @@ class DjangoModelResource(ModelAuthorizationMixin, DjangoFormMixin, PresentorRes
             obj = self.get_queryset().get(pk=pk)
         except self.model.DoesNotExist:
             obj = self.model()
-        form = self.make_form(obj=obj)
+        form = self.make_form(instance=obj)
         if form.is_valid():
             obj = form.save()
             return obj

@@ -77,11 +77,12 @@ class PresentorResourceMixin(object):
         Constructs the serializers to be used based on HTTP Headers
         settable with django setting: `RESTMORE_SERIALIZERS`
         '''
+        #print("make_serializer:", self.request.META)
         from .settings import SERIALIZERS
-        rt = self.request.META.get('ContentType') #request type
-        at = self.request.META.get('Accepts') #accept type
-        rt = rt or at or 'application/json'
-        at = at or rt
+        rt = self.request.META.get('CONTENT_TYPE') #request type
+        at = self.request.META.get('ACCEPTS', 'application/json') #accept type
+        rt = rt or at
+        #TODO intelligent mimetype matching
         try:
             rt_serializer = SERIALIZERS[rt]
         except KeyError:
@@ -98,8 +99,7 @@ class PresentorResourceMixin(object):
         settable with django setting: `RESTMORE_PRESENTORS`
         '''
         from .settings import PRESENTORS
-        #TODO proper meta keys?
-        ct = self.request.META.get('Accepts') or self.request.META.get('ContentType') or 'application/json'
+        ct = self.request.META.get('ACCEPTS') or self.request.META.get('CONTENT_TYPE') or 'application/json'
         return PRESENTORS[ct](ct)
 
     def build_response(self, data, status=200):
