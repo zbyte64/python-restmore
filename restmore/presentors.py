@@ -111,3 +111,15 @@ class PresentorResourceMixin(object):
     def serialize(self, method, endpoint, data):
         hyperdata = self.presentor.inject(method, endpoint, data)
         return super(PresentorResourceMixin, self).serialize(method, endpoint, hyperdata)
+
+    def prepare(self, data):
+        """
+        Given an item (``object`` or ``dict``), this will potentially go through
+        & reshape the output based on ``self.prepare_with`` object.
+        :param data: An item to prepare for serialization
+        :type data: object or dict
+        :returns: A potentially reshaped dict
+        :rtype: dict
+        """
+        #pass along identity & authorization to the preparer so that fields may be properly masked
+        return self.preparer.prepare(data, identity=self.identity, authorization=self.authorization)

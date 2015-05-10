@@ -40,7 +40,7 @@ setup(name='restmore',
       tests_require=(
         #'pep8',
         #'coverage',
-        'django==1.7.5',
+        'django==1.7.8',
         'restless',
         'django-setuptest'
       ),

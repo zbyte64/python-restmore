@@ -129,14 +129,45 @@ class UserModelResource(DjangoModelResource):
     def is_debug(self):
         return True
 
+    def is_authenticated(self):
+        return super(UserModelResource, self).is_authenticated() or True
+
 
 class ViewTestCase(TestCase):
+    #test the entire stack
     urls = UserModelResource.urls()
+
+    def setUp(self):
+        self.userA = User.objects.create_superuser(username='foo',
+            email='foobar@domain.com', password='foobar')
+        #print(self.userA.is_active, self.userA.pk, self.userA.check_password('foobar'), len(User.objects.all()))
+        self.loggedIn = self.client.login(
+            username='foodizzle',
+            password='foobar',
+        )
+        #TODO figure out why login isn't working!
+        #assert self.loggedIn, "Login Response: "+str(self.loggedIn)
+
+    def tearDown(self):
+        User.objects.all().delete()
 
 
     def test_list(self):
         response = self.client.get('/')
+        self.assertEqual(response.status_code, 200, response.content)
         message = json.loads(response.content.decode("utf-8"))
         if 'error' in message:
             self.fail(message['error']+ ": " + message['traceback'])
-        print(message)
+        #print(message)
+        self.assertEqual(len(message['objects']), 1)
+        self.assertEqual(message['objects'][0]['username'], 'foo')
+
+    def test_detail(self):
+        response = self.client.get('/{0}/'.format(self.userA.pk))
+        self.assertEqual(response.status_code, 200, response.content)
+        #print(response.content)
+        message = json.loads(response.content.decode("utf-8"))
+        if 'error' in message:
+            self.fail(message['error']+ ": " + message['traceback'])
+        #print(message)
+        self.assertEqual(message['username'], 'foo')

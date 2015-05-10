@@ -18,7 +18,7 @@ def normalize_model_instance(instance):
     serializer = Serializer()
     flat_obj = serializer.serialize([instance], use_natural_keys=True)[0]
     #print("normalized result:", flat_obj)
-    data = flat_obj.fields
+    data = flat_obj['fields']
     if 'pk' in flat_obj:
         data['pk'] = flat_obj['pk']
     return data
@@ -87,6 +87,5 @@ class NormalizedPreparer(Preparer):
         #TODO transmuters should be directly registerable or settingsable
         return NORMALIZER(identity, authorization)
 
-    def prepare(self, data, identity=None, authorization=None):
-        #TODO how will identity & authorization get passed in from view?
+    def prepare(self, data, identity=None, authorization=None):        
         return self.get_normalizer(identity, authorization).normalize(data)

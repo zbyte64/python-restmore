@@ -41,6 +41,7 @@ class DjangoModelAuthorization(Authorization):
         self.model = model
 
     def is_authorized(self):
+        #print("auth identity:", self.identity)
         if self.identity.is_superuser:
             return True
         #TODO proper lookup of label?
@@ -48,7 +49,7 @@ class DjangoModelAuthorization(Authorization):
             return True
             #TODO in django fashion, you have list if you have add, change, or delete
             return self.identity.has_perm
-        perm_name = model._meta.app_label + '.'
+        perm_name = self.model._meta.app_label + '.'
         if self.endpoint == 'create':
             perm_name += 'add'
         elif self.endpoint == 'update':
@@ -57,7 +58,7 @@ class DjangoModelAuthorization(Authorization):
             #TODO delete_list? update_list? others?
             perm_name += self.endpoint
 
-        perm_name += '_' + model.__name__
+        perm_name += '_' + self.model.__name__
         return self.identity.has_perm(perm_name)
 
 
