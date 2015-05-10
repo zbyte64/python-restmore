@@ -1,5 +1,7 @@
 from django.http.multipartparser import MultiPartParser, MultiPartParserError
+from django.template.loader import render_to_string
 from io import BytesIO
+import json
 
 #CONSIDER MultiValueDict vs reqular Dict
 
@@ -18,3 +20,8 @@ class UrlSerializer(object):
 
     def serialize(self, data):
         pass
+
+
+class HTMLSerializer(object):
+    def serialize(self, data):
+        return render_to_string('restmore/response.html', {'data': data, 'jsondata': json.dumps(data)})
